@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ENTRY_TEXT =
@@ -15,4 +15,11 @@ if (ENTRY_TEXT.trim().length === 0) {
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), ENTRY_TEXT, "utf8");
+const outPath = join(outDir, "entry.txt");
+writeFileSync(outPath, ENTRY_TEXT, "utf8");
+
+// Verify the written file round-trips: the bytes on disk must be
+// identical to ENTRY_TEXT, so a truncated or altered write fails loudly.
+if (readFileSync(outPath, "utf8") !== ENTRY_TEXT) {
+  throw new Error("entry.txt on disk does not match ENTRY_TEXT");
+}
